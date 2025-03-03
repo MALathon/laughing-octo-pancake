@@ -1,11 +1,11 @@
 steps:
 # Build the container image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/$PROJECT_ID/roguelike-service:$COMMIT_SHA', '.']
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/gcp-rgl/roguelike-repo/roguelike-service:$COMMIT_SHA', '.']
 
-# Push the container image to Container Registry
+# Push the container image to Artifact Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/$PROJECT_ID/roguelike-service:$COMMIT_SHA']
+  args: ['push', 'us-central1-docker.pkg.dev/gcp-rgl/roguelike-repo/roguelike-service:$COMMIT_SHA']
 
 # Deploy container image to Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -15,15 +15,27 @@ steps:
   - 'deploy'
   - 'roguelike-service'
   - '--image'
-  - 'gcr.io/$PROJECT_ID/roguelike-service:$COMMIT_SHA'
+  - 'us-central1-docker.pkg.dev/gcp-rgl/roguelike-repo/roguelike-service:$COMMIT_SHA'
   - '--region'
   - 'us-central1'
   - '--platform'
   - 'managed'
   - '--allow-unauthenticated'
+  - '--set-env-vars'
+  - 'ASSET_BUCKET=malathon-roguelike-asset'
+  - '--project'
+  - 'gcp-rgl'
 
 # Store images in Google Artifact Registry
 images:
-- 'gcr.io/$PROJECT_ID/roguelike-service:$COMMIT_SHA'
+- 'us-central1-docker.pkg.dev/gcp-rgl/roguelike-repo/roguelike-service:$COMMIT_SHA'
 
-timeout: '1600s' 
+# Set timeout
+timeout: '1600s'
+
+# Add logging options
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Alternatively, you can specify a logs bucket
+# logs_bucket: 'gs://malathon-roguelike-asset/build-logs' 
